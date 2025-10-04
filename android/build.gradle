@@ -37,6 +37,10 @@ android {
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    implementation 'com.google.android.gms:play-services-gcm:16.1.0'
+    //implementation 'com.google.android.gms:play-services-gcm:16.1.0'
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
+    implementation 'org.nanohttpd:nanohttpd-apache-fileupload:2.3.1'
+    implementation 'javax.servlet:javax.servlet-api:4.0.1'
+    implementation 'commons-fileupload:commons-fileupload:1.5'
+    implementation 'commons-io:commons-io:2.11.0'
 }

@@ -5,12 +5,12 @@ const Server = NativeModules.HttpServer;
 const ServerEventEmitter = new NativeEventEmitter(Server);
 
 module.exports = {
-    start: function (port, serviceName, callback) {
+    start: function (port, root, serviceName, callback) {
         if (port === 80) {
             throw "Invalid server port specified. Port 80 is reserved.";
         }
 
-        Server.start(port, serviceName);
+        Server.start(port, root, serviceName);
         ServerEventEmitter.addListener('httpServerResponseReceived', callback);
     },
 

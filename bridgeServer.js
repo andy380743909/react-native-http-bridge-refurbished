@@ -8,6 +8,8 @@ class Request {
     this.postData = rawRequest.postData;
     this.type = rawRequest.type;
     this.url = rawRequest.url;
+    this.fields = rawRequest.fields || {};
+    this.files = rawRequest.files || [];
   }
   get data() {
     return JSON.parse(this.postData);
@@ -38,7 +40,7 @@ class Response {
 class BridgeServer {
   static server;
 
-  constructor(serviceName, devMode=false) {
+  constructor(root, serviceName, devMode=false) {
     if (!serviceName) {
       throw new Error('Invalid service name');
     }
@@ -53,7 +55,7 @@ class BridgeServer {
     }
 
     this.callbacks = [];
-
+    this.root = root;
     this.serviceName = serviceName;
     BridgeServer.server = this;
   }
@@ -82,7 +84,7 @@ class BridgeServer {
       throw new Error('Invalid port number');
     }
 
-    httpServer.start(port, this.serviceName, async rawRequest => {
+    httpServer.start(port, this.root, this.serviceName, async rawRequest => {
       const request = new Request(rawRequest);
 
       const callbacks = this.callbacks.filter(

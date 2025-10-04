@@ -19,11 +19,19 @@ declare module "react-native-http-bridge-refurbished" {
         body: string
     ): void;
 
+export type UploadedFile = {
+        fieldName: string;
+        fileName: string;
+        tempPath: string;
+    };
+
     export type RawRequest = {
         requestId: string;
         postData?: {};
         type: string;
         url: string;
+        fields?: { [key: string]: string };
+        files?: UploadedFile[];
     };
 
     export class Request<T> {
@@ -31,6 +39,8 @@ declare module "react-native-http-bridge-refurbished" {
         public readonly postData?: {};
         public readonly type: string;
         public readonly url: string;
+        public readonly fields?: Record<string, string>;
+        public readonly files?: UploadedFile[];
 
         constructor(rawRequest: RawRequest);
 
@@ -67,7 +77,7 @@ declare module "react-native-http-bridge-refurbished" {
         public serviceName: string;
         private callbacks: HttpCallbackContainer<any>[];
 
-        constructor(serviceName: string, devMode?: boolean);
+        constructor(root?: string, serviceName: string, devMode?: boolean);
 
         public get(url: string, callback: HttpCallback<any>);
 
