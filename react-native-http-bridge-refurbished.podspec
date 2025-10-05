@@ -12,10 +12,10 @@ Pod::Spec.new do |s|
   s.homepage     = package['homepage']
   s.platform     = :ios, "9.0"
 
-  # s.source       = { :git => "https://github.com/Alwinator/react-native-http-bridge-refurbished.git", :tag => "v#{s.version}" }
-  s.source        = {:path => "."}
+  s.source       = { :git => "https://github.com/andy380743909/react-native-http-bridge-refurbished.git", :tag => "v#{s.version}" }
+  # s.source        = { :path => "." }
   s.source_files  = "ios/**/*.{h,m}"
 
-  s.dependency 'React'
+  s.dependency 'React-Core'
   s.dependency 'GCDWebServer'
 end

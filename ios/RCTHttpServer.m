@@ -15,7 +15,7 @@
     NSMutableDictionary* _completionBlocks;
 }
 
-@property(nonatomic, retain) NSString *localPath;
+// @property(nonatomic, retain) NSString *localPath;
 @property(nonatomic, retain) NSString *url;
 
 @property (nonatomic, retain) NSString* www_root;
