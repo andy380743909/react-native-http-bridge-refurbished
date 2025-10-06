@@ -28,8 +28,10 @@ import {Text} from 'react-native';
 function App(): JSX.Element {
     const [lastCalled, setLastCalled] = useState<number | undefined>();
 
+    const webroot = "pass your webroot directory path here"
+
     useEffect(() => {
-        const server = new BridgeServer('http_service', true);
+        const server = new BridgeServer(webroot,'http_service', true);
         server.get('/', async (req, res) => {
             // do something
             setLastCalled(Date.now());
