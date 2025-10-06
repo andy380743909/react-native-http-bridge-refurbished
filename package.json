@@ -1,6 +1,6 @@
 {
     "name": "react-native-http-bridge-refurbished",
-    "version": "0.0.0-development",
+    "version": "0.0.0",
     "description": "A simple HTTP debug server for React Native apps",
     "main": "index.js",
     "types": "index.d.ts",
@@ -28,9 +28,7 @@
     "scripts": {
         "semantic-release": "semantic-release"
     },
-    "dependencies": {
-        
-    },
+    "dependencies": {},
     "peerDependencies": {
         "react": "18.2.0",
         "react-native": ">=0.72"
