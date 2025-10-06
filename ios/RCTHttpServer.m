@@ -16,7 +16,7 @@
 }
 
 // @property(nonatomic, retain) NSString *localPath;
-@property(nonatomic, retain) NSString *url;
+//@property(nonatomic, retain) NSString *url;
 
 @property (nonatomic, retain) NSString* www_root;
 
@@ -49,10 +49,11 @@ RCT_EXPORT_MODULE();
     BOOL allowRangeRequests = YES;
     
     NSString *relativePath = [request.path substringFromIndex:basePath.length];
+    
     NSString *normalizedPath = GCDWebServerNormalizePath(relativePath);
     NSString *filePath = [directoryPath stringByAppendingPathComponent:normalizedPath];
     
-    NSFileManager *fm = [NSFileManager defaultManager];
+    NSFileManager *fm = [[NSFileManager alloc] init];
     NSDictionary *attributes = [fm attributesOfItemAtPath:filePath error:nil];
     NSString *fileType = attributes.fileType;
     
@@ -95,6 +96,115 @@ RCT_EXPORT_MODULE();
 }
 
 - (void)initResponseReceivedFor:(GCDWebServer *)server forType:(NSString *)type {
+    __weak typeof(self) weakSelf = self;
+    [server addHandlerWithMatchBlock:^GCDWebServerRequest* _Nullable(NSString* method, NSURL* url, NSDictionary* headers, NSString* path, NSDictionary* query) {
+        
+        if (![method isEqual:type]) {
+            return nil;
+        }
+        
+        if ([headers[@"Content-Type"] hasPrefix:@"multipart/form-data"]) {
+            return [[GCDWebServerMultiPartFormRequest alloc] initWithMethod:method
+                                                                         url:url
+                                                                     headers:headers
+                                                                        path:path
+                                                                       query:query];
+        } else if ([headers[@"Content-Type"] hasPrefix:@"application/json"]) {
+            return [[GCDWebServerDataRequest alloc] initWithMethod:method
+                                                               url:url
+                                                           headers:headers
+                                                              path:path
+                                                             query:query];
+        } else {
+            return [[GCDWebServerRequest alloc] initWithMethod:method
+                                                           url:url
+                                                       headers:headers
+                                                          path:path
+                                                         query:query];
+        }
+        
+    } asyncProcessBlock:^(GCDWebServerRequest* request, GCDWebServerCompletionBlock completionBlock) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        
+        // Generate unique requestId
+        long long timestamp = (long long)([[NSDate date] timeIntervalSince1970] * 1000.0);
+        int randomValue = arc4random_uniform(1000000);
+        NSString *requestId = [NSString stringWithFormat:@"%lld:%d", timestamp, randomValue];
+        
+        // serve static files
+        if ([type isEqual: @"GET"]) {
+            GCDWebServerResponse *response = [self staticFileResponseForRequest:request];
+            if (response) {
+                completionBlock(response);
+                return;
+            }
+        }
+        
+        // Save the completion block
+        @synchronized (self) {
+            self->_completionBlocks[requestId] = completionBlock;
+        }
+        
+        NSMutableDictionary *eventBody = [@{@"requestId": requestId,
+                                            @"type": type,
+                                            @"url": request.URL.relativeString} mutableCopy];
+        
+        @try {
+            NSString *contentType = GCDWebServerTruncateHeaderValue(request.contentType);
+            
+            if ([contentType isEqualToString:@"application/json"] &&
+                [request isKindOfClass:[GCDWebServerDataRequest class]]) {
+                
+                GCDWebServerDataRequest *dataRequest = (GCDWebServerDataRequest *)request;
+                eventBody[@"postData"] = dataRequest.jsonObject;
+                
+            } else if ([contentType isEqualToString:@"multipart/form-data"] &&
+                       [request isKindOfClass:[GCDWebServerMultiPartFormRequest class]]) {
+                
+                GCDWebServerMultiPartFormRequest *multiReq = (GCDWebServerMultiPartFormRequest *)request;
+                
+                // Text fields
+                NSMutableDictionary *fields = [NSMutableDictionary dictionary];
+                for (GCDWebServerMultiPartArgument *arg in multiReq.arguments) {
+                    NSString *value = arg.data ? [[NSString alloc] initWithData:arg.data encoding:NSUTF8StringEncoding] : @"";
+                    fields[arg.controlName] = value;
+                }
+                eventBody[@"fields"] = fields;
+                
+                // Uploaded files
+                NSMutableArray *files = [NSMutableArray array];
+                for (GCDWebServerMultiPartFile *filePart in multiReq.files) {
+                    [files addObject:@{
+                        @"fieldName": filePart.controlName ?: @"",
+                        @"fileName": filePart.fileName ?: @"",
+                        @"tempPath": filePart.temporaryPath ?: @""
+                    }];
+                }
+                eventBody[@"files"] = files;
+            }
+            
+        } @catch (NSException *exception) {
+            // Optional: add exception info
+            NSDictionary *errorInfo = @{
+                @"status": @"error",
+                @"reason": exception.reason ?: @"Unknown",
+                @"name": exception.name ?: @"Exception"
+            };
+            GCDWebServerDataResponse *response = [GCDWebServerDataResponse responseWithJSONObject:errorInfo];
+            response.statusCode = 400;
+            
+            // Call the original completion block
+            completionBlock(response);
+            return;
+        }
+        
+        // Send event to JS
+        [self sendEventWithName:@"httpServerResponseReceived" body:eventBody];
+
+        
+    }];
+    /*
     [server addDefaultHandlerForMethod:type
                           requestClass:[GCDWebServerRequest class]
                      asyncProcessBlock:^(GCDWebServerRequest *request, GCDWebServerCompletionBlock completionBlock) {
@@ -174,16 +284,20 @@ RCT_EXPORT_MODULE();
         // Send event to JS
         [self sendEventWithName:@"httpServerResponseReceived" body:eventBody];
     }];
+     */
 }
 
-RCT_EXPORT_METHOD(start:(NSInteger) port 
-                    root:(NSString *)optroot
+RCT_EXPORT_METHOD(start:(NSInteger) port
+                  root:(NSString *)optroot
                   serviceName:(NSString *) serviceName)
 {
     RCTLogInfo(@"Running HTTP bridge server: %ld", port);
     
-    self.www_root = optroot;
-    
+    if ([optroot hasPrefix:@"file://"]) {
+        self.www_root = [optroot substringFromIndex:[@"file://" length]];
+    } else {
+        self.www_root = optroot;
+    }
     _completionBlocks = [[NSMutableDictionary alloc] init];
 
     dispatch_sync(dispatch_get_main_queue(), ^{
