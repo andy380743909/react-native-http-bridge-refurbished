@@ -181,7 +181,9 @@ RCT_EXPORT_METHOD(start:(NSInteger) port
                   serviceName:(NSString *) serviceName)
 {
     RCTLogInfo(@"Running HTTP bridge server: %ld", port);
-
+    
+    self.www_root = optroot;
+    
     _completionBlocks = [[NSMutableDictionary alloc] init];
 
     dispatch_sync(dispatch_get_main_queue(), ^{
