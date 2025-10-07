@@ -1,4 +1,4 @@
-declare module "react-native-http-bridge-refurbished" {
+declare module "@andycui/react-native-http-bridge-refurbished" {
     function start(
         port: number,
         serviceName: string,

@@ -1,6 +1,6 @@
 {
     "name": "@andycui/react-native-http-bridge-refurbished",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "A simple HTTP support fileupload and static file serving server for React Native apps",
     "main": "index.js",
     "types": "index.d.ts",

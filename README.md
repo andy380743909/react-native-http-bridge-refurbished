@@ -1,9 +1,5 @@
-# react-native-http-bridge-refurbished
+# @andycui/react-native-http-bridge-refurbished
 
-[![npm](https://img.shields.io/npm/v/react-native-http-bridge-refurbished?style=for-the-badge)](https://www.npmjs.com/package/react-native-http-bridge-refurbished)
-[![npm](https://img.shields.io/npm/dt/react-native-http-bridge-refurbished?style=for-the-badge)](https://www.npmjs.com/package/react-native-http-bridge-refurbished)
-[![GitHub contributors](https://img.shields.io/github/contributors/Alwinator/react-native-http-bridge-refurbished?style=for-the-badge)](https://github.com/Alwinator/react-native-http-bridge-refurbished)
-[![GitHub Repo stars](https://img.shields.io/github/stars/Alwinator/react-native-http-bridge-refurbished?style=for-the-badge)](https://github.com/Alwinator/react-native-http-bridge-refurbished)
 
 A simple HTTP server for [React Native](https://github.com/facebook/react-native) based on [react-native-http-bridge](https://github.com/alwx/react-native-http-bridge).
 
@@ -22,7 +18,7 @@ npm install --save react-native-http-bridge-refurbished
 ## Example
 ```tsx
 import React, {useEffect, useState} from 'react';
-import {BridgeServer} from 'react-native-http-bridge-refurbished';
+import {BridgeServer} from '@andycui/react-native-http-bridge-refurbished';
 import {Text} from 'react-native';
 
 function App(): JSX.Element {
